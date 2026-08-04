@@ -83,6 +83,12 @@ public class SteamLobbyManager : MonoBehaviour
 
         currentLobbyID = new CSteamID(callback.m_ulSteamIDLobby);
         SteamMatchmaking.SetLobbyData(currentLobbyID, "HostAddress", SteamUser.GetSteamID().ToString());
+
+        LobbyChatManager chatManager = FindObjectOfType<LobbyChatManager>();
+        if (chatManager != null)
+        {
+            chatManager.InitializeChat((CSteamID)callback.m_ulSteamIDLobby);
+        }
     }
 
     private void OnGameLobbyJoinRequested(GameLobbyJoinRequested_t callback)
@@ -108,7 +114,14 @@ public class SteamLobbyManager : MonoBehaviour
         if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
         if (lobbyPanel != null) lobbyPanel.SetActive(true);
 
+
         UpdatePlayerList();
+
+        LobbyChatManager chatManager = FindObjectOfType<LobbyChatManager>();
+        if (chatManager != null)
+        {
+            chatManager.InitializeChat((CSteamID)callback.m_ulSteamIDLobby);
+        }
     }
 
     public void ToggleReady()
