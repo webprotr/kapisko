@@ -20,14 +20,14 @@ public class LobbySlotUI : MonoBehaviour
     {
         SetPlayer(CSteamID.Nil, playerName, false, false);
     }
-
+    
     // Oyuncu bilgilerini detaylı set eden metod
     public void SetPlayer(CSteamID steamID, string playerName, bool isHost, bool isReady)
     {
         if (filledSlotPanel != null) filledSlotPanel.SetActive(true);
         if (emptySlotPanel != null) emptySlotPanel.SetActive(false);
 
-        if (playerNameText != null) playerNameText.text = playerName;
+        if (playerNameText != null) playerNameText.text = isHost ? playerName + " (Lider)" : playerName;
         if (hostIcon != null) hostIcon.SetActive(isHost);
 
         if (readyStatusText != null)
@@ -55,7 +55,11 @@ public class LobbySlotUI : MonoBehaviour
     {
         if (avatarRawImage == null || !SteamManager.Initialized) return;
 
-        int imageID = SteamFriends.GetMediumFriendAvatar(steamID);
+        // Geçersiz SteamID kontrolü
+        if (steamID == CSteamID.Nil) return;
+
+        // Büyük avatar çekilerek çözünürlük arttırıldı (128x128)
+        int imageID = SteamFriends.GetLargeFriendAvatar(steamID);
         if (imageID == -1) return;
 
         uint width, height;
@@ -72,10 +76,16 @@ public class LobbySlotUI : MonoBehaviour
                 // 2. Texture2D'yi RawImage bileşenine bağlama
                 avatarRawImage.texture = avatarTexture;
 
-                // 3. EN ÖNEMLİ KISIM: Ters görüntüyü koddandüzeltme
-                // RawImage'in UV koordinatlarını (Y eksenini) ters yüz ederek resmi düzeltiyoruz.
-                // Y: 1'den başla, W/H: 1,-1 yap
+                // 3. Ters görüntüyü koddan düzeltme
                 avatarRawImage.uvRect = new Rect(0f, 1f, 1f, -1f);
+
+                // 4. Yuvarlak Alanı Tam Kaplama (Stretch / Cover)
+                // RawImage'in RectTransform'unu ebeveynine (Yuvarlak Maske Paneline) sıfırlayarak esnetiyoruz
+                RectTransform rectTransform = avatarRawImage.rectTransform;
+                rectTransform.anchorMin = Vector2.zero; // (0,0) - Sol Alt
+                rectTransform.anchorMax = Vector2.one;  // (1,1) - Sağ Üst
+                rectTransform.offsetMin = Vector2.zero; // Left & Bottom = 0
+                rectTransform.offsetMax = Vector2.zero; // Right & Top = 0
             }
         }
     }
