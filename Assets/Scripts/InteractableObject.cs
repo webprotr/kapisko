@@ -9,7 +9,7 @@ public class InteractableObject : MonoBehaviour
     public PlayerController ownerPlayer;
 
     [Header("Combat / Damage Settings")]
-    [SerializeField] private float minDamageSpeed = 2.5f; // Hasar vermek için gereken minimum fırlatma hızı
+    [SerializeField] private float minDamageSpeed = 2.5f; // Hasar 
     [SerializeField] private float damageAmount = 25f;    // Çarpma anında verilecek hasar miktarı
 
     private Rigidbody rb;
