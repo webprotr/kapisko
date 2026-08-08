@@ -109,29 +109,30 @@ public class SteamLobbyManager : MonoBehaviour
 
     private void OnLobbyDataUpdated(LobbyDataUpdate_t callback)
     {
+        // Lobi listesini güncelle
         UpdatePlayerList();
 
-        // KATILAN OYUNCULAR (CLIENT) İÇİN: Kurucu oyunu başlattı mı kontrol et
-        if (!isGameStarting && currentLobbyID.IsValid())
+        // SADECE KATILAN OYUNCULAR (CLIENT) İÇİN KONTROL
+        if (!currentLobbyID.IsValid()) return;
+
+        CSteamID hostID = SteamMatchmaking.GetLobbyOwner(currentLobbyID);
+        
+        // Eğer biz Kurucu (Host) değilsek ve oyun başlatıldıysa
+        if (hostID != SteamUser.GetSteamID())
         {
             string gameStarted = SteamMatchmaking.GetLobbyData(currentLobbyID, "GameStarted");
-            
-            if (gameStarted == "true")
-            {
-                // Sadece Kurucu Olmayan İstemciler (Client) Bağlanır
-                CSteamID hostID = SteamMatchmaking.GetLobbyOwner(currentLobbyID);
-                if (hostID != SteamUser.GetSteamID())
-                {
-                    isGameStarting = true;
-                    string hostAddress = SteamMatchmaking.GetLobbyData(currentLobbyID, "HostAddress");
-                    
-                    Debug.Log($"[SteamLobby] Kurucu oyunu başlattı! Host Adresi: {hostAddress}. Client bağlanıyor...");
 
-                    if (NetworkManager.singleton != null)
-                    {
-                        NetworkManager.singleton.networkAddress = hostAddress;
-                        NetworkManager.singleton.StartClient();
-                    }
+            if (gameStarted == "true" && !isGameStarting)
+            {
+                isGameStarting = true;
+                string hostAddress = SteamMatchmaking.GetLobbyData(currentLobbyID, "HostAddress");
+
+                Debug.Log($"[SteamLobby] Kurucu oyunu başlattı! Host Adresi: {hostAddress}. Client olarak bağlanılıyor...");
+
+                if (NetworkManager.singleton != null)
+                {
+                    NetworkManager.singleton.networkAddress = hostAddress;
+                    NetworkManager.singleton.StartClient();
                 }
             }
         }
@@ -151,25 +152,28 @@ public class SteamLobbyManager : MonoBehaviour
 
         if (SteamMatchmaking.GetLobbyOwner(currentLobbyID) == SteamUser.GetSteamID())
         {
-            Debug.Log("[SteamLobby] Kurucu olarak Oyun Başlatılıyor...");
+            Debug.Log("[SteamLobby] Kurucu oyunu başlatıyor...");
 
-            // Lobideki herkese oyunun başladığını bildir ve Host ID'sini yaz
+            // 1. Önce Host IP/SteamID adresini lobiye yaz
             SteamMatchmaking.SetLobbyData(currentLobbyID, "HostAddress", SteamUser.GetSteamID().ToString());
+            
+            // 2. Oyun başladı bayrağını set et (Bu bilgi katılan istemcilere iletilecek)
             SteamMatchmaking.SetLobbyData(currentLobbyID, "GameStarted", "true");
+
             isGameStarting = true;
 
             if (NetworkManager.singleton != null)
             {
-                // Online Scene set edilmişse ServerChangeScene otomatik tüm katılanları taşır
                 NetworkManager.singleton.onlineScene = gameSceneName;
-                
-                if (NetworkServer.active)
+
+                // Eğer ağ sunucusu aktif değilse önce Host'u başlat
+                if (!NetworkServer.active)
                 {
-                    NetworkManager.singleton.ServerChangeScene(gameSceneName);
+                    NetworkManager.singleton.StartHost();
                 }
                 else
                 {
-                    NetworkManager.singleton.StartHost();
+                    NetworkManager.singleton.ServerChangeScene(gameSceneName);
                 }
             }
         }
