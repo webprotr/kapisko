@@ -1,14 +1,11 @@
 using UnityEngine;
-using UnityEngine.UI; // <-- BU SATIRI EKLEYİN
+using UnityEngine.UI;
 using TMPro;
 using Steamworks;
 using UnityEngine.SceneManagement;
 
-
 public class SteamLobbyManager : MonoBehaviour
 {
-    
-
     public static SteamLobbyManager Instance;
 
     [Header("UI Panelleri")]
@@ -17,17 +14,21 @@ public class SteamLobbyManager : MonoBehaviour
 
     [Header("Lobi UI Elemanları")]
     [SerializeField] private Transform playerListContent;
-    [SerializeField] private GameObject playerItemPrefab; // Oyuncu adının yazacağı metin prefab'ı
+    [SerializeField] private GameObject playerItemPrefab; 
     [SerializeField] private GameObject startGameButton; // Sadece Kurucu görür
 
     [Header("Ready Button UI")]
     [SerializeField] private Button readyButton;
     [SerializeField] private TextMeshProUGUI readyButtonText;
 
+    [Header("Sahne Ayarları")]
+    [SerializeField] private string gameSceneName = "GameScene"; // Yüklenecek oyun sahnesinin adı
+
     // Steam Callbacks (Olaylar)
     protected Callback<LobbyCreated_t> lobbyCreated;
     protected Callback<GameLobbyJoinRequested_t> gameLobbyJoinRequested;
     protected Callback<LobbyEnter_t> lobbyEntered;
+    protected Callback<LobbyDataUpdate_t> lobbyDataUpdated; // Oyuncular hazır olduğunda listenin güncellenmesi için
 
     private CSteamID currentLobbyID;
 
@@ -38,28 +39,25 @@ public class SteamLobbyManager : MonoBehaviour
 
     private void Start()
     {
-        // Oyun başlar başlamaz panelleri garantiye alalım
         if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
         if (lobbyPanel != null) lobbyPanel.SetActive(false);
 
         if (!SteamManager.Initialized) return;
 
-        // Steam olayları...
+        // Steam Olay Dinleyicileri
         lobbyCreated = Callback<LobbyCreated_t>.Create(OnLobbyCreated);
         gameLobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnGameLobbyJoinRequested);
         lobbyEntered = Callback<LobbyEnter_t>.Create(OnLobbyEntered);
+        lobbyDataUpdated = Callback<LobbyDataUpdate_t>.Create(OnLobbyDataUpdated);
     }
 
-    // 1. "Arkadaşlarınla Oyna" butonuna basılınca çalışacak
     public void HostLobby()
     {
         Debug.Log("[SteamLobby] Arkadaşlarınla Oyna butonuna tıklandı!");
 
-        // 1. Arayüzün çalıştığını teyit etmek için panelleri doğrudan değiştiriyoruz
         if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
         if (lobbyPanel != null) lobbyPanel.SetActive(true);
 
-        // 2. Steam bağlıysa lobi oluşturma isteği atıyoruz
         if (SteamManager.Initialized)
         {
             Debug.Log("[SteamLobby] Steam aktif, lobi oluşturuluyor...");
@@ -73,8 +71,6 @@ public class SteamLobbyManager : MonoBehaviour
 
     private void OnLobbyCreated(LobbyCreated_t callback)
     {
-        Debug.Log($"[SteamLobby] Lobi oluşturma sonucu: {callback.m_eResult}");
-
         if (callback.m_eResult != EResult.k_EResultOK)
         {
             Debug.LogError($"[SteamLobby] Lobi oluşturulamadı! Hata Kodu: {callback.m_eResult}");
@@ -93,7 +89,6 @@ public class SteamLobbyManager : MonoBehaviour
 
     private void OnGameLobbyJoinRequested(GameLobbyJoinRequested_t callback)
     {
-        // Steam davetine tıklayınca çalışır
         SteamMatchmaking.JoinLobby(callback.m_steamIDLobby);
     }
 
@@ -101,20 +96,18 @@ public class SteamLobbyManager : MonoBehaviour
     {
         currentLobbyID = new CSteamID(callback.m_ulSteamIDLobby);
 
-        // Kendi hazır durumumuzu Steam tarafında varsayılan olarak "false" yapıyoruz
         if (SteamManager.Initialized)
         {
             SteamMatchmaking.SetLobbyMemberData(currentLobbyID, "ReadyStatus", "false");
         }
 
-        // Buton görünümünü sıfırla ("HAZIR OL" yeşil buton yap)
         UpdateReadyButtonUI(false);
 
-        // Panelleri ayarla ve oyuncu listesini güncelle
         if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
         if (lobbyPanel != null) lobbyPanel.SetActive(true);
 
-
+        // Kurucu kontrolü: Başlat butonunu sadece Kurucuya göster
+        CheckHostStatus();
         UpdatePlayerList();
 
         LobbyChatManager chatManager = FindObjectOfType<LobbyChatManager>();
@@ -124,18 +117,51 @@ public class SteamLobbyManager : MonoBehaviour
         }
     }
 
+    // Bir oyuncu Hazır butonuna bastığında veya lobi verisi değiştiğinde çalışır
+    private void OnLobbyDataUpdated(LobbyDataUpdate_t callback)
+    {
+        UpdatePlayerList();
+    }
+
+    // --- YENİ EKLEYECEĞİN BUTON METODLARI ---
+
+    // 1. "ARKADAŞ DAVET ET" Butonuna Bağlanacak Metod
+    public void OpenInviteOverlay()
+    {
+        if (SteamManager.Initialized && currentLobbyID.IsValid())
+        {
+            // Steam Overlay Arkadaş Davet Penceresini Açar
+            SteamFriends.ActivateGameOverlayInviteDialog(currentLobbyID);
+        }
+        else
+        {
+            Debug.LogWarning("Lobi geçerli değil veya Steam açık değil!");
+        }
+    }
+
+    // 2. "OYUNU BAŞLAT" Butonuna Bağlanacak Metod (Sadece Kurucu İçin)
+    public void StartGame()
+    {
+        if (!SteamManager.Initialized || !currentLobbyID.IsValid()) return;
+
+        // Kurucu kontrolü
+        if (SteamMatchmaking.GetLobbyOwner(currentLobbyID) == SteamUser.GetSteamID())
+        {
+            Debug.Log("[SteamLobby] Oyunu Başlatılıyor... Oyun Sahnesi Yükleniyor.");
+            SceneManager.LoadScene(gameSceneName);
+        }
+    }
+
     public void ToggleReady()
     {
         if (!SteamManager.Initialized || !currentLobbyID.IsValid()) return;
 
         CSteamID myID = SteamUser.GetSteamID();
-        
         string currentReadyStatus = SteamMatchmaking.GetLobbyMemberData(currentLobbyID, myID, "ReadyStatus");
         string newStatus = (currentReadyStatus == "true") ? "false" : "true";
 
         SteamMatchmaking.SetLobbyMemberData(currentLobbyID, "ReadyStatus", newStatus);
 
-        // Ekranı ve butonun durumunu yenile
         UpdateReadyButtonUI(newStatus == "true");
         UpdatePlayerList();
     }
@@ -147,7 +173,6 @@ public class SteamLobbyManager : MonoBehaviour
         if (isReady)
         {
             readyButtonText.text = "HAZIRI BOZ";
-            // Butonun rengini turuncu/kırmızı yapmak istersen (Opsiyonel):
             if (readyButton != null) 
                 readyButton.GetComponent<Image>().color = new Color(0.9f, 0.3f, 0.2f); 
         }
@@ -155,13 +180,22 @@ public class SteamLobbyManager : MonoBehaviour
         {
             readyButtonText.text = "HAZIR OL";
             if (readyButton != null) 
-                readyButton.GetComponent<Image>().color = new Color(0.2f, 0.8f, 0.3f); // Yeşil
+                readyButton.GetComponent<Image>().color = new Color(0.2f, 0.8f, 0.3f); 
         }
+    }
+
+    private void CheckHostStatus()
+    {
+        if (!SteamManager.Initialized || !currentLobbyID.IsValid() || startGameButton == null) return;
+
+        bool isHost = SteamMatchmaking.GetLobbyOwner(currentLobbyID) == SteamUser.GetSteamID();
+        startGameButton.SetActive(isHost); // Başlat butonunu sadece Kurucuya açar
     }
 
     public void UpdatePlayerList()
     {
-        // 1. Önce mevcut tüm slotları temizle
+        if (playerListContent == null) return;
+
         foreach (Transform child in playerListContent)
         {
             Destroy(child.gameObject);
@@ -170,7 +204,6 @@ public class SteamLobbyManager : MonoBehaviour
         int numPlayers = SteamMatchmaking.GetNumLobbyMembers(currentLobbyID);
         CSteamID hostID = SteamMatchmaking.GetLobbyOwner(currentLobbyID);
 
-        // 2. Her zaman 4 slot oluştur (Dolu ve Boşlar için)
         for (int i = 0; i < 4; i++)
         {
             GameObject slotItem = Instantiate(playerItemPrefab, playerListContent);
@@ -178,37 +211,33 @@ public class SteamLobbyManager : MonoBehaviour
 
             if (i < numPlayers)
             {
-                // DOLU SLOT
                 CSteamID memberID = SteamMatchmaking.GetLobbyMemberByIndex(currentLobbyID, i);
                 string memberName = SteamFriends.GetFriendPersonaName(memberID);
                 bool isHost = (memberID == hostID);
 
-                // Steam'den oyuncunun hazır durumunu çekelim (Varsayılan: false)
                 string readyData = SteamMatchmaking.GetLobbyMemberData(currentLobbyID, memberID, "ReadyStatus");
                 bool isReady = (readyData == "true");
 
-                // 3 parametre ile çağırıyoruz: (İsim, Host mu, Hazır mı)
                 slotUI.SetPlayer(memberID, memberName, isHost, isReady);
             }
             else
             {
-                // BOŞ SLOT
                 slotUI.SetEmpty();
             }
         }
+
+        CheckHostStatus();
     }
 
     public void LeaveLobby()
     {
         Debug.Log("[SteamLobby] Lobiden ayrılıyor...");
 
-        // 1. Steam tarafında lobiden çıkış yap
         if (SteamManager.Initialized && currentLobbyID.IsValid())
         {
             SteamMatchmaking.LeaveLobby(currentLobbyID);
         }
 
-        // 2. Panelleri sıfırla (Lobi Kapanır, Ana Menü Açılır)
         if (lobbyPanel != null) lobbyPanel.SetActive(false);
         if (mainMenuPanel != null) mainMenuPanel.SetActive(true);
     }
