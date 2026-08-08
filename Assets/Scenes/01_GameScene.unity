@@ -558,6 +558,11 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!1 &15835305 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5833657514003078024, guid: 67c07f51b9c208d498a6fb27d5e21bc9, type: 3}
+  m_PrefabInstance: {fileID: 1523724354}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &19246884
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2859,6 +2864,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   isLocalPlayer: 1
+  maxHealth: 100
   walkSpeed: 3.5
   runSpeed: 6
   gravity: -9.81
@@ -4160,6 +4166,71 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3516244483180929611, guid: 67c07f51b9c208d498a6fb27d5e21bc9, type: 3}
   m_PrefabInstance: {fileID: 1523724354}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &422456715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 15835305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0899f1f21ba5d7e44ba42b201f37eba5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
+  itemName: Prop
+  isHeld: 0
+  ownerPlayer: {fileID: 0}
+  minDamageSpeed: 2.5
+  damageAmount: 25
+--- !u!54 &422456716
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 15835305}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!65 &422456717
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 15835305}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.37706664, y: 0.93343157, z: 0.0931633}
+  m_Center: {x: 0.0003664997, y: 0.13402353, z: 0.0108916825}
 --- !u!1001 &422545362
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12242,7 +12313,16 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5833657514003078024, guid: 67c07f51b9c208d498a6fb27d5e21bc9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 422456717}
+    - targetCorrespondingSourceObject: {fileID: 5833657514003078024, guid: 67c07f51b9c208d498a6fb27d5e21bc9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 422456716}
+    - targetCorrespondingSourceObject: {fileID: 5833657514003078024, guid: 67c07f51b9c208d498a6fb27d5e21bc9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 422456715}
   m_SourcePrefab: {fileID: 100100000, guid: 67c07f51b9c208d498a6fb27d5e21bc9, type: 3}
 --- !u!4 &1523914999 stripped
 Transform:
@@ -17281,6 +17361,8 @@ MonoBehaviour:
   itemName: Prop
   isHeld: 0
   ownerPlayer: {fileID: 0}
+  minDamageSpeed: 2.5
+  damageAmount: 25
 --- !u!54 &2035858242
 Rigidbody:
   m_ObjectHideFlags: 0
