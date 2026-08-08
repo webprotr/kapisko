@@ -1,12 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Mirror;
+using Unity.Cinemachine; // Unity 6 Cinemachine kütüphanesi
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerController : MonoBehaviour
+public class PlayerController : NetworkBehaviour
 {
-    [Header("Multiplayer / Local Player Settings")]
-    public bool isLocalPlayer = true;
-
     [Header("Health & Stats Settings")]
     [SerializeField] private float maxHealth = 100f;
     private float currentHealth;
@@ -35,12 +34,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject crosshairUI;
     [SerializeField] private GameObject chargeBarUI;
     [SerializeField] private Image chargeBarFillImage;
-    [SerializeField] private LineRenderer trajectoryLine; // Atış Yörünge Çizgisi
+    [SerializeField] private LineRenderer trajectoryLine;
 
     [Header("References")]
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private Animator animator;
-    [SerializeField] private GameObject localCameraObject;
 
     private CharacterController controller;
     private Vector3 velocity;
@@ -51,8 +49,8 @@ public class PlayerController : MonoBehaviour
     private float throwChargeTimer = 0f;
     private bool isChargingThrow = false;
     private float jumpAnimTimer = 0f;
+    private bool cameraBound = false;
 
-    // Animator Hash (Performans için hafızada tutuyoruz)
     private static readonly int GetHitHash = Animator.StringToHash("GetHit");
 
     private void Awake()
@@ -61,17 +59,29 @@ public class PlayerController : MonoBehaviour
         currentHealth = maxHealth;
     }
 
+    public override void OnStartLocalPlayer()
+    {
+        base.OnStartLocalPlayer();
+
+        TryBindCamera();
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
     private void Start()
     {
         if (!isLocalPlayer)
         {
-            if (localCameraObject != null) localCameraObject.SetActive(false);
             return;
         }
 
-        if (cameraTransform == null && Camera.main != null)
+        // Otomatik UI Bulma Koruması
+        if (crosshairUI == null) crosshairUI = GameObject.Find("CrosshairUI");
+        if (chargeBarUI == null) chargeBarUI = GameObject.Find("ChargeBarUI");
+        if (chargeBarUI != null && chargeBarFillImage == null)
         {
-            cameraTransform = Camera.main.transform;
+            chargeBarFillImage = chargeBarUI.GetComponentInChildren<Image>();
         }
 
         if (animator == null)
@@ -82,14 +92,16 @@ public class PlayerController : MonoBehaviour
         if (crosshairUI != null) crosshairUI.SetActive(false);
         if (chargeBarUI != null) chargeBarUI.SetActive(false);
         if (trajectoryLine != null) trajectoryLine.enabled = false;
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
 
     private void Update()
     {
         if (!isLocalPlayer) return;
+
+        if (!cameraBound)
+        {
+            TryBindCamera();
+        }
 
         HandleGrounded();
         HandleLook();
@@ -100,19 +112,32 @@ public class PlayerController : MonoBehaviour
         ApplyGravity();
     }
 
-    // --- HASAR VE DARBE ALMA MEKANİĞİ ---
+    private void TryBindCamera()
+    {
+        if (cameraSocket == null) return;
+
+        CinemachineCamera vcam = FindFirstObjectByType<CinemachineCamera>();
+
+        if (vcam != null)
+        {
+            vcam.Target.TrackingTarget = cameraSocket;
+            vcam.Target.LookAtTarget = cameraSocket;
+            cameraTransform = vcam.transform;
+            cameraBound = true;
+            Debug.Log("[Cinemachine] Unity 6 Kamerası başarıyla kilitlendi!");
+        }
+    }
+
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
         Debug.Log($"[Combat] {gameObject.name} {damage} hasar aldı! Kalan Can: {currentHealth}");
 
-        // 1. Darbe Alma Animasyonunu Tetikle
         if (animator != null)
         {
             animator.SetTrigger(GetHitHash);
         }
 
-        // 2. Darbe yediği için elindeki eşya otomatik yere düşer
         DropItem();
 
         if (currentHealth <= 0)
@@ -124,7 +149,6 @@ public class PlayerController : MonoBehaviour
     private void Die()
     {
         Debug.Log($"[Combat] {gameObject.name} Öldü!");
-        // Ölüm durumunda yapılacaklar (Respawn / Ragdoll vs.) buraya eklenebilir
     }
 
     private void HandleGrounded()
@@ -213,6 +237,8 @@ public class PlayerController : MonoBehaviour
 
     private void TryPickupItem()
     {
+        if (cameraTransform == null) return;
+
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, pickupRange))
         {
@@ -247,7 +273,6 @@ public class PlayerController : MonoBehaviour
             isChargingThrow = true;
             throwChargeTimer = 0f;
 
-            // Tıklandığı an barı hemen 0'a çekiyoruz
             if (chargeBarFillImage != null) chargeBarFillImage.fillAmount = 0f;
 
             if (crosshairUI != null) crosshairUI.SetActive(true);
@@ -265,7 +290,6 @@ public class PlayerController : MonoBehaviour
                 chargeBarFillImage.fillAmount = chargeRatio;
             }
 
-            // Atış yörüngesini ekranda çiz
             DrawTrajectory(chargeRatio);
         }
 
@@ -288,7 +312,7 @@ public class PlayerController : MonoBehaviour
 
     private void DrawTrajectory(float chargeRatio)
     {
-        if (trajectoryLine == null) return;
+        if (trajectoryLine == null || cameraTransform == null) return;
 
         float throwForce = Mathf.Lerp(minThrowForce, maxThrowForce, chargeRatio);
         Vector3 startPos = cameraTransform.position + cameraTransform.forward * 1.0f;
@@ -300,7 +324,6 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < pointsCount; i++)
         {
             float time = i * 0.05f;
-            // Fizik formülü: Pos = StartPos + Velocity * t + 1/2 * Gravity * t^2
             Vector3 point = startPos + startVelocity * time + 0.5f * Physics.gravity * time * time;
             trajectoryLine.SetPosition(i, point);
         }
@@ -319,13 +342,14 @@ public class PlayerController : MonoBehaviour
 
     private void PerformMeleeAttack()
     {
+        if (cameraTransform == null) return;
+
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, attackRange))
         {
             PlayerController targetPlayer = hit.collider.GetComponent<PlayerController>();
             if (targetPlayer != null && targetPlayer != this)
             {
-                // Yakın dövüş hasarı ver (Can düşürür, animasyonu tetikler ve elindeki eşyayı düşürür)
                 targetPlayer.TakeDamage(15f);
             }
         }
@@ -333,6 +357,8 @@ public class PlayerController : MonoBehaviour
 
     private void PerformThrow()
     {
+        if (cameraTransform == null) return;
+
         float chargeRatio = Mathf.Clamp01(throwChargeTimer / maxChargeTime);
         float throwForce = Mathf.Lerp(minThrowForce, maxThrowForce, chargeRatio);
 

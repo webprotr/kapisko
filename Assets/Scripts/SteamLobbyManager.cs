@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using Steamworks;
 using UnityEngine.SceneManagement;
+using Mirror;
 
 public class SteamLobbyManager : MonoBehaviour
 {
@@ -15,16 +16,15 @@ public class SteamLobbyManager : MonoBehaviour
     [Header("Lobi UI Elemanları")]
     [SerializeField] private Transform playerListContent;
     [SerializeField] private GameObject playerItemPrefab; 
-    [SerializeField] private GameObject startGameButton; // Sadece Kurucu görür
+    [SerializeField] private GameObject startGameButton; 
 
     [Header("Ready Button UI")]
     [SerializeField] private Button readyButton;
     [SerializeField] private TextMeshProUGUI readyButtonText;
 
     [Header("Sahne Ayarları")]
-    [SerializeField] private string gameSceneName = "01_GameScene"; // Sahne adı
+    [SerializeField] private string gameSceneName = "01_GameScene"; 
 
-    // Steam Callbacks (Olaylar)
     protected Callback<LobbyCreated_t> lobbyCreated;
     protected Callback<GameLobbyJoinRequested_t> gameLobbyJoinRequested;
     protected Callback<LobbyEnter_t> lobbyEntered;
@@ -45,7 +45,6 @@ public class SteamLobbyManager : MonoBehaviour
 
         if (!SteamManager.Initialized) return;
 
-        // Steam Olay Dinleyicileri
         lobbyCreated = Callback<LobbyCreated_t>.Create(OnLobbyCreated);
         gameLobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnGameLobbyJoinRequested);
         lobbyEntered = Callback<LobbyEnter_t>.Create(OnLobbyEntered);
@@ -54,14 +53,11 @@ public class SteamLobbyManager : MonoBehaviour
 
     public void HostLobby()
     {
-        Debug.Log("[SteamLobby] Arkadaşlarınla Oyna butonuna tıklandı!");
-
         if (mainMenuPanel != null) mainMenuPanel.SetActive(false);
         if (lobbyPanel != null) lobbyPanel.SetActive(true);
 
         if (SteamManager.Initialized)
         {
-            Debug.Log("[SteamLobby] Steam aktif, lobi oluşturuluyor...");
             SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypeFriendsOnly, 4);
         }
     }
@@ -72,7 +68,7 @@ public class SteamLobbyManager : MonoBehaviour
 
         currentLobbyID = new CSteamID(callback.m_ulSteamIDLobby);
         SteamMatchmaking.SetLobbyData(currentLobbyID, "HostAddress", SteamUser.GetSteamID().ToString());
-        SteamMatchmaking.SetLobbyData(currentLobbyID, "GameStarted", "false"); // Oyun henüz başlamadı
+        SteamMatchmaking.SetLobbyData(currentLobbyID, "GameStarted", "false");
 
         LobbyChatManager chatManager = FindFirstObjectByType<LobbyChatManager>();
         if (chatManager != null)
@@ -111,20 +107,24 @@ public class SteamLobbyManager : MonoBehaviour
         }
     }
 
-    // Lobi verisi veya oyuncu durumu güncellendiğinde çağrılır
     private void OnLobbyDataUpdated(LobbyDataUpdate_t callback)
     {
         UpdatePlayerList();
 
-        // KATILAN OYUNCULAR İÇİN: Kurucu oyunu başlattı mı kontrol et
         if (!isGameStarting && currentLobbyID.IsValid())
         {
             string gameStarted = SteamMatchmaking.GetLobbyData(currentLobbyID, "GameStarted");
             if (gameStarted == "true")
             {
                 isGameStarting = true;
-                Debug.Log("[SteamLobby] Kurucu oyunu başlattı! Oyun sahnesine geçiliyor...");
-                SceneManager.LoadScene(gameSceneName);
+                Debug.Log("[SteamLobby] Kurucu oyunu başlattı! Client olarak bağlanılıyor...");
+                
+                if (NetworkManager.singleton != null)
+                {
+                    string hostAddress = SteamMatchmaking.GetLobbyData(currentLobbyID, "HostAddress");
+                    NetworkManager.singleton.networkAddress = hostAddress;
+                    NetworkManager.singleton.StartClient();
+                }
             }
         }
     }
@@ -137,22 +137,34 @@ public class SteamLobbyManager : MonoBehaviour
         }
     }
 
-    // OYUNU BAŞLAT (Sadece Kurucu Tetikler)
     public void StartGame()
     {
         if (!SteamManager.Initialized || !currentLobbyID.IsValid()) return;
 
-        // Kurucu kontrolü
         if (SteamMatchmaking.GetLobbyOwner(currentLobbyID) == SteamUser.GetSteamID())
         {
-            Debug.Log("[SteamLobby] Oyunu Başlatılıyor... Tüm oyuncular aktarılıyor.");
+            Debug.Log("[SteamLobby] Oyun Başlatılıyor...");
             
-            // Tüm lobiye oyunun başladığını haber veriyoruz
             SteamMatchmaking.SetLobbyData(currentLobbyID, "GameStarted", "true");
-
-            // Kurucunun kendisi de sahneye geçiyor
             isGameStarting = true;
-            SceneManager.LoadScene(gameSceneName);
+
+            if (NetworkManager.singleton != null)
+            {
+                NetworkManager.singleton.onlineScene = gameSceneName;
+
+                if (NetworkServer.active)
+                {
+                    NetworkManager.singleton.ServerChangeScene(gameSceneName);
+                }
+                else
+                {
+                    NetworkManager.singleton.StartHost();
+                }
+            }
+            else
+            {
+                SceneManager.LoadScene(gameSceneName);
+            }
         }
     }
 
@@ -191,7 +203,7 @@ public class SteamLobbyManager : MonoBehaviour
         if (!SteamManager.Initialized || !currentLobbyID.IsValid() || startGameButton == null) return;
 
         bool isHost = SteamMatchmaking.GetLobbyOwner(currentLobbyID) == SteamUser.GetSteamID();
-        startGameButton.SetActive(isHost); // Başlat butonunu sadece Kurucuya açar, arkadaşında gizler
+        startGameButton.SetActive(isHost); 
     }
 
     public void UpdatePlayerList()
