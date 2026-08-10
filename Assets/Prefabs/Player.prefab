@@ -300,6 +300,7 @@ GameObject:
   - component: {fileID: 7067355644851540498}
   - component: {fileID: 2209482537213956419}
   - component: {fileID: 581257442148606786}
+  - component: {fileID: 6810903006798405705}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -546,6 +547,23 @@ MonoBehaviour:
   positionSensitivity: 0.01
   rotationSensitivity: 0.01
   scaleSensitivity: 0.01
+--- !u!114 &6810903006798405705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5027041112086836478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f6f3bf89aa97405989c802ba270f815, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mirror.Components::Mirror.NetworkAnimator
+  syncDirection: 1
+  syncMode: 0
+  syncInterval: 0
+  clientAuthority: 0
+  animator: {fileID: 5150490219324824545}
 --- !u!1 &7817490021986658288
 GameObject:
   m_ObjectHideFlags: 0
@@ -702,6 +720,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4107167189488714126, guid: 48c897de7006f436ebc613446e766067, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7935265684313906164, guid: 48c897de7006f436ebc613446e766067, type: 3}
+      propertyPath: m_CullingMode
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7935265684313906164, guid: 48c897de7006f436ebc613446e766067, type: 3}

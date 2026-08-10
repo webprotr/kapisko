@@ -8,7 +8,7 @@ public class PlayerController : NetworkBehaviour
 {
     [Header("Health & Stats Settings")]
     [SerializeField] private float maxHealth = 100f;
-    private float currentHealth;
+    [SyncVar(hook = nameof(OnHealthChanged))] private float currentHealth;
 
     [Header("Movement Settings")]
     [SerializeField] private float walkSpeed = 3.5f;
@@ -50,6 +50,10 @@ public class PlayerController : NetworkBehaviour
     private bool isChargingThrow = false;
     private float jumpAnimTimer = 0f;
     private bool cameraBound = false;
+
+    // --- AĞ SENKRONİZASYONU İÇİN EKLENEN ANİMASYON AĞ DEĞİŞKENLERİ ---
+    [SyncVar(hook = nameof(OnSpeedChanged))] private float networkSpeed = 0f;
+    [SyncVar(hook = nameof(OnJumpChanged))] private float networkJump = 0f;
 
     private static readonly int GetHitHash = Animator.StringToHash("GetHit");
 
@@ -122,28 +126,43 @@ public class PlayerController : NetworkBehaviour
         {
             vcam.Target.TrackingTarget = cameraSocket;
             vcam.Target.LookAtTarget = cameraSocket;
+
+            // Kamera Clipping engelleme ayarı
+            vcam.Lens.NearClipPlane = 0.01f;
+
             cameraTransform = vcam.transform;
             cameraBound = true;
             Debug.Log("[Cinemachine] Unity 6 Kamerası başarıyla kilitlendi!");
         }
     }
 
+    // --- CAN VE HASAR SENKRONİZASYONU ---
     public void TakeDamage(float damage)
     {
+        if (!isServer) return; // Hasar hesabını sunucu kontrol eder
+
         currentHealth -= damage;
-        Debug.Log($"[Combat] {gameObject.name} {damage} hasar aldı! Kalan Can: {currentHealth}");
-
-        if (animator != null)
-        {
-            animator.SetTrigger(GetHitHash);
-        }
-
-        DropItem();
+        RpcOnGetHit();
 
         if (currentHealth <= 0)
         {
             Die();
         }
+    }
+
+    [ClientRpc]
+    private void RpcOnGetHit()
+    {
+        if (animator != null)
+        {
+            animator.SetTrigger(GetHitHash);
+        }
+        DropItem();
+    }
+
+    private void OnHealthChanged(float oldHealth, float newHealth)
+    {
+        Debug.Log($"[Combat] {gameObject.name} Kalan Can: {newHealth}");
     }
 
     private void Die()
@@ -180,6 +199,7 @@ public class PlayerController : NetworkBehaviour
 
         Vector3 inputDir = new Vector3(inputX, 0f, inputZ).normalized;
         bool isMoving = inputDir.magnitude > 0.1f;
+        float targetSpeed = 0.0f;
 
         if (isMoving)
         {
@@ -189,12 +209,27 @@ public class PlayerController : NetworkBehaviour
 
             controller.Move(moveDirection * currentSpeed * Time.deltaTime);
 
-            float targetSpeed = isRunning ? 2.0f : 1.0f;
-            if (animator != null) animator.SetFloat("Speed", targetSpeed);
+            targetSpeed = isRunning ? 2.0f : 1.0f;
         }
-        else
+
+        // Hız değiştiyse sunucuya ilet
+        if (Mathf.Abs(networkSpeed - targetSpeed) > 0.05f)
         {
-            if (animator != null) animator.SetFloat("Speed", 0.0f);
+            CmdUpdateSpeed(targetSpeed);
+        }
+    }
+
+    [Command]
+    private void CmdUpdateSpeed(float newSpeed)
+    {
+        networkSpeed = newSpeed;
+    }
+
+    private void OnSpeedChanged(float oldSpeed, float newSpeed)
+    {
+        if (animator != null)
+        {
+            animator.SetFloat("Speed", newSpeed);
         }
     }
 
@@ -206,17 +241,30 @@ public class PlayerController : NetworkBehaviour
             jumpAnimTimer = 0.5f;
         }
 
+        float jumpVal = 0.0f;
+        if (jumpAnimTimer > 0)
+        {
+            jumpAnimTimer -= Time.deltaTime;
+            jumpVal = 1.0f;
+        }
+
+        if (Mathf.Abs(networkJump - jumpVal) > 0.05f)
+        {
+            CmdUpdateJump(jumpVal);
+        }
+    }
+
+    [Command]
+    private void CmdUpdateJump(float newJump)
+    {
+        networkJump = newJump;
+    }
+
+    private void OnJumpChanged(float oldJump, float newJump)
+    {
         if (animator != null)
         {
-            if (jumpAnimTimer > 0)
-            {
-                jumpAnimTimer -= Time.deltaTime;
-                animator.SetFloat("Jump", 1.0f); 
-            }
-            else
-            {
-                animator.SetFloat("Jump", 0.0f); 
-            }
+            animator.SetFloat("Jump", newJump);
         }
     }
 
