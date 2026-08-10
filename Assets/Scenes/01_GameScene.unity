@@ -1006,6 +1006,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5640322047020452556, guid: 455d120af0f5bc24caeba73cea23c1e1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 67630299}
+    - targetCorrespondingSourceObject: {fileID: 5640322047020452556, guid: 455d120af0f5bc24caeba73cea23c1e1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 67630303}
   m_SourcePrefab: {fileID: 100100000, guid: 455d120af0f5bc24caeba73cea23c1e1, type: 3}
 --- !u!1 &67630298 stripped
 GameObject:
@@ -1111,6 +1114,26 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.25424418, y: 0.32622355, z: 0.2632199}
   m_Center: {x: -0.012856606, y: 0.16233918, z: 0.00056325644}
+--- !u!114 &67630303
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 67630298}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0899f1f21ba5d7e44ba42b201f37eba5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  itemName: Prop
+  isHeld: 0
+  ownerPlayer: {fileID: 0}
+  minDamageSpeed: 2.5
+  damageAmount: 25
 --- !u!4 &77367716 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 9aaa633ac03087647bd6b35cac30456c, type: 3}
@@ -2989,6 +3012,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8961202359895273827, guid: cbc9b5d24bccc554c90934047875b2d3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1448565283}
+    - targetCorrespondingSourceObject: {fileID: 8961202359895273827, guid: cbc9b5d24bccc554c90934047875b2d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1448565288}
+    - targetCorrespondingSourceObject: {fileID: 8961202359895273827, guid: cbc9b5d24bccc554c90934047875b2d3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1448565287}
   m_SourcePrefab: {fileID: 100100000, guid: cbc9b5d24bccc554c90934047875b2d3, type: 3}
 --- !u!1 &308257824 stripped
 GameObject:
@@ -3982,6 +4011,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0899f1f21ba5d7e44ba42b201f37eba5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
   itemName: Prop
   isHeld: 0
   ownerPlayer: {fileID: 0}
@@ -5731,6 +5763,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4849015453323036186, guid: e9a8a5db8e75fa74a851fb4c369ec7bb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 637196655}
+    - targetCorrespondingSourceObject: {fileID: 4849015453323036186, guid: e9a8a5db8e75fa74a851fb4c369ec7bb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 637196659}
   m_SourcePrefab: {fileID: 100100000, guid: e9a8a5db8e75fa74a851fb4c369ec7bb, type: 3}
 --- !u!1 &637196654 stripped
 GameObject:
@@ -5838,6 +5873,26 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &637196659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637196654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0899f1f21ba5d7e44ba42b201f37eba5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  itemName: Prop
+  isHeld: 0
+  ownerPlayer: {fileID: 0}
+  minDamageSpeed: 2.5
+  damageAmount: 25
 --- !u!4 &637431248 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6425454525440811779, guid: 5471d7449c8258e47a8188aa7ed66d2b, type: 3}
@@ -6183,6 +6238,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7756599152651387901, guid: 9c5f020975b3ce2479f9899d4874ef00, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1447949528}
+    - targetCorrespondingSourceObject: {fileID: 7756599152651387901, guid: 9c5f020975b3ce2479f9899d4874ef00, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1447949532}
   m_SourcePrefab: {fileID: 100100000, guid: 9c5f020975b3ce2479f9899d4874ef00, type: 3}
 --- !u!1 &688962501 stripped
 GameObject:
@@ -9827,6 +9885,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7906224996075142769, guid: 949f3a030332fdd429153134a5b6a6d0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1335661629}
+    - targetCorrespondingSourceObject: {fileID: 7906224996075142769, guid: 949f3a030332fdd429153134a5b6a6d0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1335661633}
   m_SourcePrefab: {fileID: 100100000, guid: 949f3a030332fdd429153134a5b6a6d0, type: 3}
 --- !u!1 &1335661628 stripped
 GameObject:
@@ -9932,6 +9993,26 @@ MonoBehaviour:
   serverOnly: 0
   visibility: 0
   hasSpawned: 0
+--- !u!114 &1335661633
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1335661628}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0899f1f21ba5d7e44ba42b201f37eba5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  itemName: Prop
+  isHeld: 0
+  ownerPlayer: {fileID: 0}
+  minDamageSpeed: 2.5
+  damageAmount: 25
 --- !u!4 &1341744182 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4307767658095391966, guid: 433f95ebbfa48a144b39bf4ed6323489, type: 3}
@@ -10914,6 +10995,26 @@ MonoBehaviour:
   positionSensitivity: 0.01
   rotationSensitivity: 0.01
   scaleSensitivity: 0.01
+--- !u!114 &1447949532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 688962501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0899f1f21ba5d7e44ba42b201f37eba5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  itemName: Prop
+  isHeld: 0
+  ownerPlayer: {fileID: 0}
+  minDamageSpeed: 2.5
+  damageAmount: 25
 --- !u!4 &1448565282 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 109977024938649507, guid: cbc9b5d24bccc554c90934047875b2d3, type: 3}
@@ -11020,6 +11121,46 @@ CapsuleCollider:
   m_Height: 0.33245364
   m_Direction: 1
   m_Center: {x: 0.0000014286488, y: 0.16622682, z: 0.00000019744039}
+--- !u!114 &1448565287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 308257824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0899f1f21ba5d7e44ba42b201f37eba5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  itemName: Prop
+  isHeld: 0
+  ownerPlayer: {fileID: 0}
+  minDamageSpeed: 2.5
+  damageAmount: 25
+--- !u!114 &1448565288
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 308257824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0899f1f21ba5d7e44ba42b201f37eba5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  itemName: Prop
+  isHeld: 0
+  ownerPlayer: {fileID: 0}
+  minDamageSpeed: 2.5
+  damageAmount: 25
 --- !u!1001 &1449116336
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16442,6 +16583,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0899f1f21ba5d7e44ba42b201f37eba5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractableObject
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
   itemName: Prop
   isHeld: 0
   ownerPlayer: {fileID: 0}
